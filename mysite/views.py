@@ -4,7 +4,7 @@ import sys
 import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
-
+import datetime
 scope = 'user-read-private user-top-read'
 client_id = "85c7a80b0ee84941a3325c9cf0195a29"
 client_secret = "ee5c526f74574b2588c7fd5e340ddd2f"
@@ -22,10 +22,16 @@ auth = oauth2.SpotifyOAuth(client_id, client_secret, redirect_uri, state=None, s
 
 def home(request):
     # Create links and OpenID form to the Login handler.
-    if token=="":
+    # if token=="" or token["expires_at"]<datetime.datetime.now().time():
+    if token == "":
         return HttpResponse('<a href=%s>Login</a>.<br />' % auth.get_authorize_url())
     else:
-        sp = spotipy.Spotify(auth=token, requests_session=True)
+        try:
+            sp = spotipy.Spotify(auth=token["access_token"], requests_session=True)
+            ##TODO: GET A REFRESHED TOKEN
+        except:
+            return
+
         results = sp.current_user_top_tracks(limit=50)
         a = ""
         for item in results['items']:
@@ -36,7 +42,7 @@ def home(request):
 def callback(request, code):
     # return HttpResponse(auth.client_id)
     global token
-    token = auth.get_access_token(request.GET["code"])["access_token"]
+    token = auth.get_access_token(request.GET["code"])
     # return HttpResponse(token)
     return redirect('index')
 

@@ -11,7 +11,8 @@ import numpy as np
 # export SPOTIPY_CLIENT_SECRET='ee5c526f74574b2588c7fd5e340ddd2f'
 # export SPOTIPY_REDIRECT_URI='http://localhost:8080/callback'
 
-username = '1160377113'
+
+username = 'julhien'
 relevant_features = ['tempo']
 
 # Get all playlists of a user to show as choices for the user
@@ -32,31 +33,25 @@ def getPlaylists(username):
     else:
         print ("Can't get token for", username)
 
+
 # Get all tracks of a playlist for use in creating new playlists
 def getTracks(playlist_id): #or playlist['id']
-    scope = 'playlist-read-private'
+    scope = 'user-library-read'
 
     token = util.prompt_for_user_token(username, scope)
 
     if token:
         sp = spotipy.Spotify(auth=token)
-        results = sp.user_playlist_tracks(username, playlist_id)
-        tracks = results['items']
-        return tracks
+        tracks = sp.user_playlist_tracks(username, playlist_id)
+        return tracks['name']['id']
     else:
         print ("Can't get token for", username)
 
 def getTrackFeatures(track_id):
-    scope = 'playlist-read-private'
+    sp = spotipy.Spotify()
+    features = sp.audio_features(track_id)
 
-    token = util.prompt_for_user_token(username, scope)
-
-    if token:
-        sp = spotipy.Spotify(auth=token)
-        features = sp.audio_features([track_id])
-        return features[0]
-    else:
-        print ("Can't get token for", username)
+    return features
 
 # The preferences chosen by the user for the new playlist
 #def userPlaylistPreferences():
@@ -66,7 +61,42 @@ def getTrackFeatures(track_id):
 
 #def mergePlaylists():
 
-# Create a new tracklist with a track
+
+def getRecommendedTrack(tracks, tempo_min, tempo_max):
+    sp = spotipy.Spotify()
+
+    recommendation = sp.recommendations(seed_tracks=tracks, limit=1, min_tempo=tempo_min, max_tempo = tempo_max)
+    return recommendation[0]
+
+##TODO: HANDLE SCALE LIMITS AND GAPS IMPOSSIBLE TO FILL
+def extendTrackList(sorted_ids, sorted_tempos, add_limit):
+    #Takes tracks ids and the distance
+    added_time = 0
+    while added_time<add_limit:
+        derivatives = [sorted_tempos[k+1]-sorted_tempos[k] for k in range(sorted_tempos-1)]
+        indices = np.argsort(derivatives)
+        recommendation = getRecommendedTrack(sorted_ids[range(min(0,indices[0]-2),max(len(sorted_ids),indices[0]+3))], sorted_tempos[indices[0]],sorted_tempos[indices[0]+1])
+        sorted_ids.insert(indices[0]+1,recommendation['id'])
+        sorted_tempos.insert(indices[0] + 1, recommendation['id'])
+        added_time += recommendation['duration_ms']
+
+    return sorted_ids
+
+# def cutList(sorted_ids, sorted_tempos, add_limit, min_tempo_scale, max_tempo_scale):
+#     added_time = 0
+#     while added_time > add_limit:
+#         derivatives = [sorted_tempos[k + 1] - sorted_tempos[k] for k in range(sorted_tempos - 1)]
+#         indices = np.argsort(derivatives)
+#         recommendation = getRecommendedTrack(
+#             sorted_ids[range(min(0, indices[0] - 2), max(len(sorted_ids), indices[0] + 3))], sorted_tempos[indices[0]],
+#             sorted_tempos[indices[0] + 1])
+#         sorted_ids.insert(indices[0] + 1, recommendation['id'])
+#         sorted_tempos.insert(indices[0] + 1, recommendation['id'])
+#         added_time += recommendation['duration_ms']
+#
+#     return sorted_ids
+
+
 def sortTrackList(tracks):
     #print(tracks)
     track_ids = []
