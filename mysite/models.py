@@ -89,6 +89,11 @@ def getRecommendedTrack(tracks, tempo_limit_1, tempo_limit_2):
         sp = spotipy.Spotify(auth=token)
 
     recommendation = sp.recommendations(seed_tracks=tracks.tolist(), limit=1, min_tempo=min(tempo_limit_1,tempo_limit_2), max_tempo = max(tempo_limit_1,tempo_limit_2))
+    if len(recommendation['tracks'])==0:
+        recommendation = sp.recommendations(seed_tracks=tracks.tolist(), limit=1,
+                                            min_tempo=min(tempo_limit_1, tempo_limit_2)-5,
+                                            max_tempo=max(tempo_limit_1, tempo_limit_2)+5)
+
     return recommendation['tracks'][0]
 
 ##TODO: HANDLE SCALE LIMITS AND GAPS IMPOSSIBLE TO FILL
@@ -207,7 +212,7 @@ def updatePlaylist(playlist, playlistLen):
     if playlist['owner']['id'] == username:
         tracks = getTracks(playlist['id'])
         #length = playlistLength(tracks)
-        newTracks_ids, newTracks_tempos = clusterSortTrackList(tracks)
+        newTracks_ids, newTracks_tempos = sortTrackList(tracks)
         # clusterSortTrackList(tracks)
         smoothifiedTrackListIDs = extendTrackList(newTracks_ids, newTracks_tempos, playlistLen)
         #return
@@ -242,7 +247,7 @@ for playlist in playlists['items']:
         continue
 
     if playlist['owner']['id'] == username:
-        updatePlaylist(playlist, 3*10**5)
+        updatePlaylist(playlist, 3*10**6)
 #         print("Getting tracks")
 #         print(playlist)
 #         tracks = getTracks(playlist['id'])
