@@ -5,6 +5,7 @@ import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
 import datetime
+import models
 scope = 'user-read-private user-top-read'
 client_id = "85c7a80b0ee84941a3325c9cf0195a29"
 client_secret = "ee5c526f74574b2588c7fd5e340ddd2f"
@@ -31,7 +32,6 @@ def home(request):
             ##TODO: GET A REFRESHED TOKEN
         except:
             return
-
         results = sp.current_user_top_tracks(limit=50)
         a = ""
         for item in results['items']:
