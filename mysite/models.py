@@ -36,6 +36,7 @@ def getPlaylists(username):
     else:
         print ("Can't get token for", username)
 
+
 # Get all tracks of a playlist for use in creating new playlists
 def getTracks(playlist_id): #or playlist['id']
     scope = 'playlist-read-private'
@@ -50,8 +51,8 @@ def getTracks(playlist_id): #or playlist['id']
     else:
         print ("Can't get token for", username)
 
-
 def getTrackFeatures(track_id):
+    #print('Track ID:' + track_id)
     scope = 'playlist-read-private'
 
     token = util.prompt_for_user_token(username, scope)
@@ -61,13 +62,12 @@ def getTrackFeatures(track_id):
         #if track_id is None:
         #    print (track_id)
         features = sp.audio_features([track_id])
-        if features == None:
-            print(track_id)
         #if features[0]:
         #    print (features[0])
         return features[0]
     else:
         print ("Can't get token for", username)
+
 # The preferences chosen by the user for the new playlist
 #def userPlaylistPreferences():
 
@@ -147,7 +147,9 @@ def sortTrackList(tracks):
     track_tempo =[]
 
     for track in tracks:
-        # print(track['track']['name'])
+        #print(track['track']['name'])
+        if track['track']['id'] is None:
+            continue
         features = getTrackFeatures(track['track']['id'])
         #print (features)
         track_ids.append(features['id'])
